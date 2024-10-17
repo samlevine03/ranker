@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog"
-import { AlertCircle, ThumbsUp, ThumbsDown } from "lucide-react"
+import { AlertCircle, ThumbsUp, ThumbsDown, Trash2 } from "lucide-react"
 
 const MAX_SCORE = 5.0
 const GOOD_THRESHOLD = 3.3
@@ -199,6 +199,30 @@ export default function Ranker() {
         return midGroup[0][0] // First object in the mid group
     }
 
+    // Delete an entry
+    const deleteEntry = (category: 'good' | 'fine' | 'bad', groupIndex: number, entryIndex: number) => {
+        let categoryData = getCategoryData(category)
+        const rankGroups = [...categoryData.rankGroups]
+
+        // Remove the entry
+        rankGroups[groupIndex].splice(entryIndex, 1)
+
+        // If the group is now empty, remove it
+        if (rankGroups[groupIndex].length === 0) {
+            rankGroups.splice(groupIndex, 1)
+        }
+
+        // Recalculate ratings
+        recalculateRatings(categoryData, rankGroups)
+
+        const newCategoryData = {
+            ...categoryData,
+            rankGroups: rankGroups
+        }
+
+        updateCategoryData(category, newCategoryData)
+    }
+
     return (
         <div className="container mx-auto p-4">
             <h1 className="text-2xl font-bold mb-4">Rankwise</h1>
@@ -225,13 +249,13 @@ export default function Ranker() {
                     </DialogHeader>
                     <DialogFooter>
                         <Button onClick={() => handleComparisonResult(1)} className="bg-green-500 hover:bg-green-600">
-                            <ThumbsUp className="mr-2 h-4 w-4" /> Better
+                            <ThumbsUp className="mr-2 h-4 w-4"/> Better
                         </Button>
                         <Button onClick={() => handleComparisonResult(0)} className="bg-yellow-500 hover:bg-yellow-600">
-                            <AlertCircle className="mr-2 h-4 w-4" /> Equal
+                            <AlertCircle className="mr-2 h-4 w-4"/> Equal
                         </Button>
                         <Button onClick={() => handleComparisonResult(-1)} className="bg-red-500 hover:bg-red-600">
-                            <ThumbsDown className="mr-2 h-4 w-4" /> Worse
+                            <ThumbsDown className="mr-2 h-4 w-4"/> Worse
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -239,19 +263,27 @@ export default function Ranker() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
-                    { category: 'good', data: goodObjects },
-                    { category: 'fine', data: fineObjects },
-                    { category: 'bad', data: badObjects },
-                ].map(({ category, data }) => (
+                    {category: 'good', data: goodObjects},
+                    {category: 'fine', data: fineObjects},
+                    {category: 'bad', data: badObjects},
+                ].map(({category, data}) => (
                     <div key={category} className="border p-4 rounded">
                         <h2 className="text-xl font-semibold mb-2 capitalize">{category}</h2>
                         <ul>
                             {data.rankGroups.map((group, groupIndex) => (
                                 <li key={groupIndex}>
                                     <ul>
-                                        {group.map(([name, rating], index) => (
-                                            <li key={index}>
-                                                {name}: {(rating + data.offset).toFixed(1)}/5.0
+                                        {group.map(([name, rating], entryIndex) => (
+                                            <li key={entryIndex} className="flex justify-between items-center">
+                                                <span>{name}: {(rating + data.offset).toFixed(1)}/5.0</span>
+                                                <Button
+                                                    onClick={() => deleteEntry(category as 'good' | 'fine' | 'bad', groupIndex, entryIndex)}
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="text-red-500 hover:text-red-700"
+                                                >
+                                                    <Trash2 className="h-4 w-4"/>
+                                                </Button>
                                             </li>
                                         ))}
                                     </ul>
