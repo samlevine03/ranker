@@ -201,7 +201,7 @@ export default function Ranker() {
 
     return (
         <div className="container mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-4">Ranker</h1>
+            <h1 className="text-2xl font-bold mb-4">Rankwise</h1>
             <div className="flex space-x-2 mb-4">
                 <Input
                     type="text"
